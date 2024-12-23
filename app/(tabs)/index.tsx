@@ -27,7 +27,7 @@ export default function HomeScreen() {
 
   const finishItem = (id:any) => {
     //setData(data.filter((item:any) => item.id !== id));
-    setData(data.map((item:any) => (item.id === id ? {...item, done: true}: item )))
+    setData(data.map((item:any) => (item.id === id ? {...item, done: !item.done}: item )))
   }
 
   const updateItem = (id:any, newValue:any) => {
@@ -60,6 +60,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>My Tasks</Text>
       <TextInput
         style={styles.input}
         placeholder="Descrição"
@@ -101,6 +102,12 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderRadius: 5,
+  },
+  title: {
+    margin: "auto",
+    fontSize: 30,
+    fontWeight: "bold",
+    marginBottom: 20,
   },
   item: {
     padding: 10,
