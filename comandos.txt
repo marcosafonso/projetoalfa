@@ -1,0 +1,5 @@
+Instalação:
+- npx create-expo-app meu-app
+- npx expo start (iniciar servidor do app)
+- npm install @react-native-async-storage/async-storage
+

@@ -1,74 +1,130 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Text,Image,
+        Platform, View,
+        Button, TextInput,
+        Pressable, FlatList,
+        StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function HomeScreen() {
+
+  // const [text, onChangeText] = React.useState('')
+  // const [number, onChangeNumber] = React.useState('');
+
+  const [data, setData] = React.useState<any>([]); // Dados da lista
+  const [input, setInput] = React.useState(''); // Entrada de texto
+
+  const addItem = () => {
+    if (input.trim()){
+      setData([...data, {id: Date.now().toString(), value: input, done: false}]);
+    }
+    setInput("");
+    saveData();
+  }
+
+  const finishItem = (id:any) => {
+    //setData(data.filter((item:any) => item.id !== id));
+    setData(data.map((item:any) => (item.id === id ? {...item, done: true}: item )))
+  }
+
+  const updateItem = (id:any, newValue:any) => {
+    setData(data.map((item:any) => (item.id === id ? {...item, value: newValue}: item )));
+  }
+
+  //AsyncStorage
+  const saveData = async () => {
+    try {
+      await AsyncStorage.setItem('crudData', JSON.stringify(data));
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('crudData');
+      if (savedData) {
+        setData(JSON.parse(savedData));
+      }
+     } catch (e) {
+        console.log(e);
+      }
+    }
+  
+    useEffect(() => {
+      loadData();
+    },[]);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Descrição"
+        value={input}
+        onChangeText={setInput}
+      />
+
+      {/* <Button title="Adicionar" onPress={addItem}/> */}
+      <TouchableOpacity style={styles.button} onPress={addItem}>
+        <Text style={styles.buttonText}>Adicionar</Text>
+      </TouchableOpacity>
+
+      <FlatList 
+        data={data}
+        renderItem={({item}) => (
+          <View style={item.done? styles.itemDone: styles.item}>
+            <TouchableOpacity onLongPress={()=> finishItem(item.id)}>
+              <Text style={{fontSize: 16}}>{item.value}</Text>  
+            </TouchableOpacity>
+          </View>  
+        )}
+        keyExtractor={(item) => item.id}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: { 
+    flex: 1, 
+    padding: 20,
+    paddingTop:100,
+    backgroundColor: "#ffbd00",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#f4d35e",
+    backgroundColor: "#faf0ca",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  item: {
+    padding: 10,
+    borderBottomWidth: 1,
+  },
+  itemDone: {
+    padding: 10,
+    textDecorationLine: 'line-through',
+    borderBottomWidth: 1,
+  },
+  button: {
+    borderRadius: 5,
+    backgroundColor: "#390099",
+    padding: 10,
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  buttonDel: {
+    borderRadius: 5,
+    backgroundColor: "#ff6f69",
+    padding: 10,
+    alignItems: 'center',
+  }
 });
